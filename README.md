@@ -85,13 +85,73 @@ AOP separates **cross-cutting concerns** (e.g., logging, security, transactions)
 public void logBefore(JoinPoint jp) {
     System.out.println("Before method: " + jp.getSignature().getName());
 }
-
-#### 2. '@AfterReturning'
+2. @AfterReturning
 
 Executes after a method completes successfully.
 Can access the method's return value.
 
-@AfterReturning(pointcut = "execution(* com.example.service.*.*(..))", returning = "result")
+java@AfterReturning(pointcut = "execution(* com.example.service.*.*(..))", returning = "result")
 public void logAfterReturning(Object result) {
     System.out.println("Method returned: " + result);
 }
+3. @AfterThrowing
+
+Executes if the method throws an exception.
+
+java@AfterThrowing(pointcut = "execution(* com.example.service.*.*(..))", throwing = "ex")
+public void logAfterThrowing(JoinPoint jp, Exception ex) {
+    System.out.println("Exception in method: " + jp.getSignature().getName());
+    ex.printStackTrace();
+}
+4. @After
+
+Executes after method execution, regardless of success or failure.
+
+java@After("execution(* com.example.service.*.*(..))")
+public void logAfter(JoinPoint jp) {
+    System.out.println("After method: " + jp.getSignature().getName());
+}
+5. @Around
+
+Executes before and after the method.
+Provides full control over method execution (can modify arguments, return values, or skip execution).
+Useful for measuring execution time.
+
+java@Around("execution(* com.example.service.*.*(..))")
+public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+    System.out.println("[Around] Before: " + joinPoint.getSignature().getName());
+    long start = System.currentTimeMillis();
+    Object result = joinPoint.proceed(); // Proceed to the target method
+    long end = System.currentTimeMillis();
+    System.out.println("[Around] After: " + joinPoint.getSignature().getName() + ", Time: " + (end - start) + "ms");
+    return result;
+}
+
+JoinPoint & ProceedingJoinPoint
+
+JoinPoint: Provides details about the intercepted method (e.g., method name, arguments, target object).
+ProceedingJoinPoint: A subtype of JoinPoint used in @Around advice, allowing the advice to call proceed() to continue method execution.
+
+
+3️⃣ How Proxies Enable AOP
+Spring AOP is proxy-based:
+
+When a class is annotated with @Aspect, Spring creates a proxy around the target bean.
+The proxy intercepts method calls and applies the defined advice (@Before, @After, etc.) at the appropriate time.
+Without proxies, AOP in Spring would not work, as proxies "inject" cross-cutting behavior without modifying the original code.
+
+
+✅ Key Takeaways
+
+Proxies wrap objects to inject additional logic.
+AOP uses proxies to weave cross-cutting concerns at runtime.
+Advice types allow hooking into method execution at various points.
+JoinPoint provides method details; ProceedingJoinPoint offers full control in @Around advice.
+In JPA/Hibernate, proxies also handle lazy loading.
+
+
+Notes
+
+This document assumes familiarity with Spring and basic Java concepts.
+For hands-on practice, implement the examples in a Spring Boot project.
+Explore Spring AOP documentation for advanced topics like custom pointcuts and aspect ordering.
